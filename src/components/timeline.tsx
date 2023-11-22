@@ -24,9 +24,16 @@ const Wrapper = styled.div`
   gap: 10px;
   flex-direction: column;
   overflow-y: scroll;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
-export default function Timeline() {
+export default function Timeline({
+  onEditClick,
+}: {
+  onEditClick: (tweet: ITweet) => void;
+}) {
   let unsubscribe: Unsubscribe | null = null;
   const [tweets, setTweet] = useState<ITweet[]>([]);
   useEffect(() => {
@@ -59,7 +66,11 @@ export default function Timeline() {
   return (
     <Wrapper>
       {tweets.map((tweet) => (
-        <Tweet key={tweet.id} {...tweet} />
+        <Tweet
+          key={tweet.id}
+          {...tweet}
+          onEditClick={() => onEditClick(tweet)}
+        />
       ))}
     </Wrapper>
   );
