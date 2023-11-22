@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { auth, db, storage } from "../firebase";
-import { addDoc, collection, updateDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { ITweet } from "./timeline";
+
+interface UpdateTweetFormProps {
+  tweet: ITweet | null;
+  onUpdateComplete: () => void;
+}
 
 const Form = styled.form`
   display: flex;
@@ -63,14 +69,20 @@ const SubmitBtn = styled.input`
   }
 `;
 
-const FILE_SIZE_MAX_LIMIT = 1 * 1024 * 1024; //1gb
-
-export default function UpdateTweetForm() {
+export default function UpdateTweetForm({
+  tweet,
+  onUpdateComplete,
+}: UpdateTweetFormProps) {
   const [isLoading, setLoading] = useState(false);
-  const [tweet, setTweet] = useState("");
+  const [updatedTweet, setUpdatedTweet] = useState(tweet?.tweet || "");
   const [file, setFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    setUpdatedTweet(tweet?.tweet || "");
+  }, [tweet]);
+
   const onChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setTweet(e.target.value);
+    setUpdatedTweet(e.target.value);
   };
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = e.target;
@@ -81,26 +93,27 @@ export default function UpdateTweetForm() {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const user = auth.currentUser;
-    if (!user || isLoading || tweet === "" || tweet.length > 180) return;
+    if (!user || isLoading || updatedTweet === "" || updatedTweet.length > 180)
+      return;
 
     try {
       setLoading(true);
-      const doc = await addDoc(collection(db, "tweets"), {
-        tweet,
-        createAt: Date.now(),
-        username: user.displayName || "Anonymous",
-        userId: user.uid,
+      const tweetDoc = doc(db, "tweets", tweet?.id || "");
+      await updateDoc(tweetDoc, {
+        tweet: updatedTweet,
       });
+
       if (file) {
-        const locationRef = ref(storage, `tweets/${user.uid}/${doc.id}`);
+        const locationRef = ref(storage, `tweets/${user.uid}/${tweet?.id}`);
         const result = await uploadBytes(locationRef, file);
         const url = await getDownloadURL(result.ref);
-        await updateDoc(doc, {
+        await updateDoc(tweetDoc, {
           photo: url,
         });
       }
-      setTweet("");
+      setUpdatedTweet("");
       setFile(null);
+      onUpdateComplete();
     } catch (e) {
       console.log(e);
     } finally {
@@ -114,11 +127,11 @@ export default function UpdateTweetForm() {
         rows={5}
         maxLength={200}
         onChange={onChange}
-        value={tweet}
+        value={updatedTweet}
         placeholder="What is happening"
       />
       <AttachFileButton htmlFor="file">
-        {file ? "Photo added" : "Add photo"}
+        {file ? "Photo added" : "Update photo"}
       </AttachFileButton>
       <AttachFileInput
         onChange={onFileChange}
@@ -128,7 +141,7 @@ export default function UpdateTweetForm() {
       />
       <SubmitBtn
         type="submit"
-        value={isLoading ? "Posting..." : "post Tweet"}
+        value={isLoading ? "Posting..." : "Update Tweet"}
       />
     </Form>
   );

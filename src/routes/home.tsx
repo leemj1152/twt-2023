@@ -15,16 +15,29 @@ const Wrapper = styled.div`
 `;
 
 export default function Home() {
-  const [tweetState, setTweetState] = useState("post");
+  const [tweetState, setTweetState] = useState(true);
+  const [selectedTweet, setSelectedTweet] = useState<ITweet | null>(null);
+
+  const handleEditClick = (tweet: ITweet): void => {
+    setSelectedTweet(tweet);
+    setTweetState(false);
+  };
+
+  const handleUpdateComplete = () => {
+    setTweetState(true);
+    console.log("업데이트 완료");
+  };
   return (
     <Wrapper>
-      {tweetState === "post" ? <PostTweetForm /> : <UpdateTweetForm />}
-      <Timeline
-        onEditClick={function (tweet: ITweet): void {
-          setTweetState("update");
-          console.log("업데이트");
-        }}
-      />
+      {tweetState ? (
+        <PostTweetForm />
+      ) : (
+        <UpdateTweetForm
+          tweet={selectedTweet}
+          onUpdateComplete={handleUpdateComplete}
+        />
+      )}
+      <Timeline onEditClick={handleEditClick} />
     </Wrapper>
   );
 }
