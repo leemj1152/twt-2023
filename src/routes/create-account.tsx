@@ -1,9 +1,16 @@
-import { createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useState } from "react";
 import { auth } from "../firebase";
 import { Link, useNavigate } from "react-router-dom";
 import { FirebaseError } from "firebase/app";
-import { Form, Wrapper, Title, Input, Switcher, Error, Reset } from "../components/auth-components";
+import {
+  Form,
+  Wrapper,
+  Title,
+  Input,
+  Switcher,
+  Error,
+} from "../components/auth-components";
 import GithubButton from "../components/github-btn";
 
 export default function CreateAccount() {
@@ -13,59 +20,89 @@ export default function CreateAccount() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const onChange = (e : React.ChangeEvent<HTMLInputElement>) => {
-    const {target: {name, value}} = e;
-    if(name === "name"){
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const {
+      target: { name, value },
+    } = e;
+    if (name === "name") {
       setName(value);
-    } else if(name === "password") {
+    } else if (name === "password") {
       setPassword(value);
-    } else if(name === "email") {
+    } else if (name === "email") {
       setEmail(value);
     }
-  }
-  const onSubmit = async (e : React.FormEvent<HTMLFormElement>) => {
+  };
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-    if(isLoading || name === "" || email === "" || password === "") return;
-    try{
+    if (isLoading || name === "" || email === "" || password === "") return;
+    try {
       setLoading(true);
-      const credentials = await createUserWithEmailAndPassword(auth, email, password);
+      const credentials = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       console.log(credentials.user);
       await updateProfile(credentials.user, {
         displayName: name,
       });
       navigate("/");
-    } catch(e){
-      if(e instanceof FirebaseError){
+    } catch (e) {
+      if (e instanceof FirebaseError) {
         setError(e.message);
       }
     } finally {
       setLoading(false);
     }
-  }
+  };
   // const onClick = () => {
   //   sendPasswordResetEmail(auth, email);
   //   alert("이메일을 확인해주세요");
   // };
   return (
-  <Wrapper>
-    <Title>Join X</Title>
-    <Form onSubmit={onSubmit}>
-      <Input onChange={onChange} name="name" value={name} placeholder="Name" type="text" required/>
-      <Input onChange={onChange} name="email" value={email} placeholder="Email" type="email" required/>
-      <Input onChange={onChange} name="password" value={password} placeholder="Password" type="password" required/>
-      <Input type="submit" value={isLoading ? "Loading..." : "Create Account"}/>
-    </Form>
-    {error !== "" ? <Error>{error}</Error> : null}
-    <Switcher>
-      Already have an account? {""}
-      <Link to="/login">Log in &rarr;</Link>
-    </Switcher>
-    {/* <Reset>
+    <Wrapper>
+      <Title>Join X</Title>
+      <Form onSubmit={onSubmit}>
+        <Input
+          onChange={onChange}
+          name="name"
+          value={name}
+          placeholder="Name"
+          type="text"
+          required
+        />
+        <Input
+          onChange={onChange}
+          name="email"
+          value={email}
+          placeholder="Email"
+          type="email"
+          required
+        />
+        <Input
+          onChange={onChange}
+          name="password"
+          value={password}
+          placeholder="Password"
+          type="password"
+          required
+        />
+        <Input
+          type="submit"
+          value={isLoading ? "Loading..." : "Create Account"}
+        />
+      </Form>
+      {error !== "" ? <Error>{error}</Error> : null}
+      <Switcher>
+        Already have an account? {""}
+        <Link to="/login">Log in &rarr;</Link>
+      </Switcher>
+      {/* <Reset>
       비밀번호를 잊어버리셨나요? {""}
       <Link to="" onClick={onClick}>Click</Link>
     </Reset> */}
-    <GithubButton />
-  </Wrapper>
-  )
+      <GithubButton />
+    </Wrapper>
+  );
 }

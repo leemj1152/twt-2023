@@ -63,8 +63,6 @@ const SubmitBtn = styled.input`
   }
 `;
 
-const FILE_SIZE_MAX_LIMIT = 1 * 1024 * 1024; //1gb
-
 export default function PostTweetForm() {
   const [isLoading, setLoading] = useState(false);
   const [tweet, setTweet] = useState("");
