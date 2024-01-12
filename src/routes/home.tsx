@@ -1,19 +1,43 @@
 import styled from "styled-components";
 import PostTweetForm from "../components/post-tweet-form";
-import Timeline from "../components/timeline";
+import Timeline, { ITweet } from "../components/timeline";
+import { useState } from "react";
+import UpdateTweetForm from "../components/Update-tweet-form";
 
 const Wrapper = styled.div`
   display: grid;
   gap: 50px;
   overflow-y: scroll;
   grid-template-rows: 1fr 5fr;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 export default function Home() {
+  const [tweetState, setTweetState] = useState(true);
+  const [selectedTweet, setSelectedTweet] = useState<ITweet | null>(null);
+
+  const handleEditClick = (tweet: ITweet): void => {
+    setSelectedTweet(tweet);
+    setTweetState(false);
+  };
+
+  const handleUpdateComplete = () => {
+    setTweetState(true);
+    console.log("업데이트 완료");
+  };
   return (
     <Wrapper>
-      <PostTweetForm />
-      <Timeline />
+      {tweetState ? (
+        <PostTweetForm />
+      ) : (
+        <UpdateTweetForm
+          tweet={selectedTweet}
+          onUpdateComplete={handleUpdateComplete}
+        />
+      )}
+      <Timeline onEditClick={handleEditClick} />
     </Wrapper>
   );
 }

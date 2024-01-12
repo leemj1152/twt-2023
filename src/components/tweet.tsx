@@ -3,6 +3,7 @@ import { ITweet } from "./timeline";
 import { auth, db, storage } from "../firebase";
 import { deleteDoc, doc } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
+import { useNavigate } from "react-router-dom";
 
 const Wrapper = styled.div`
   display: grid;
@@ -36,9 +37,33 @@ const DeleteButton = styled.button`
   text-transform: uppercase;
   border-radius: 5px;
   cursor: pointer;
+  margin-right: 5px;
 `;
 
-export default function Tweet({ username, photo, tweet, userId, id }: ITweet) {
+const UpdateButton = styled.button`
+  background-color: tomato;
+  color: white;
+  font-weight: 600;
+  border: 0;
+  font-size: 12px;
+  padding: 5px 10px;
+  text-transform: uppercase;
+  border-radius: 5px;
+  cursor: pointer;
+`;
+
+interface TweetProps extends ITweet {
+  onEditClick: () => void;
+}
+
+const Tweet: React.FC<TweetProps> = ({
+  username,
+  photo,
+  tweet,
+  userId,
+  id,
+  onEditClick,
+}) => {
   const user = auth.currentUser;
   const onDelete = async () => {
     const ok = confirm("해당 게시글을 삭제하시겠습니까?");
@@ -54,6 +79,16 @@ export default function Tweet({ username, photo, tweet, userId, id }: ITweet) {
     } finally {
     }
   };
+  const onUpdate = async () => {
+    const ok = confirm("해당 게시글을 수정 하시겠습니까?");
+    if (!ok || user?.uid !== userId) return;
+    try {
+      onEditClick();
+    } catch (e) {
+      console.log(e);
+    } finally {
+    }
+  };
   return (
     <Wrapper>
       <Column>
@@ -62,8 +97,13 @@ export default function Tweet({ username, photo, tweet, userId, id }: ITweet) {
         {user?.uid === userId ? (
           <DeleteButton onClick={onDelete}>삭제</DeleteButton>
         ) : null}
+        {user?.uid === userId ? (
+          <UpdateButton onClick={onUpdate}>수정</UpdateButton>
+        ) : null}
       </Column>
       <Column>{photo ? <Photo src={photo}></Photo> : null}</Column>
     </Wrapper>
   );
-}
+};
+
+export default Tweet;
